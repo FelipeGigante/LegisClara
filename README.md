@@ -1,6 +1,7 @@
 # 🏛️ LegisClara - Plataforma Completa de Engajamento Legislativo
 
 **Sistema 100% automatizado** que democratiza o acesso à informação legislativa brasileira através de IA, transformando proposições complexas da Câmara e Senado em conteúdo educativo e publicando automaticamente nas redes sociais.
+Membros: Arthur Brasi, Felipe Gigante, Kelvin Cassiano
 
 ---
 
