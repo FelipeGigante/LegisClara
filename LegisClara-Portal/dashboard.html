@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegisClara Portal - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-dark: #0f172a;
+            --primary-blue: #1e3a8a;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --text-light: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--accent-cyan);
+        }
+
+        .nav-menu {
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dim);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+        }
+
+        .nav-item i {
+            font-size: 1.1rem;
+            width: 24px;
+        }
+
+        .user-section {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-details h4 {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .user-details p {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 0.7rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: var(--error);
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--text-dim);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-cyan);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-header span {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Pipeline Control */
+        .pipeline-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pipeline-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-control {
+            padding: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .btn-control:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .btn-control i {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+        }
+
+        .btn-control.primary {
+            background: linear-gradient(135deg, var(--accent-purple), var(--primary-blue));
+            border: none;
+        }
+
+        .btn-control.primary i {
+            color: white;
+        }
+
+        .btn-control.danger i {
+            color: var(--error);
+        }
+
+        .btn-control.warning i {
+            color: var(--warning);
+        }
+
+        /* Status Indicator */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.running {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.stopped {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-dim);
+        }
+
+        .status-badge.processing {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        /* Activity Log */
+        .activity-log {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 1rem;
+            border-left: 3px solid var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .log-time {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .log-message {
+            font-size: 0.9rem;
+        }
+
+        /* Configuration */
+        .config-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        .config-label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .config-label strong {
+            font-size: 0.9rem;
+        }
+
+        .config-label span {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-cyan);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        @media (max-width: 968px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <i class="fa-solid fa-scale-balanced"></i>
+                LegisClara
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                <i class="fa-solid fa-chart-line"></i>
+                Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('pipeline')">
+                <i class="fa-solid fa-play"></i>
+                Controle Pipeline
+            </div>
+            <div class="nav-item" onclick="showSection('activity')">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Atividades
+            </div>
+            <div class="nav-item" onclick="showSection('config')">
+                <i class="fa-solid fa-gear"></i>
+                Configurações
+            </div>
+        </nav>
+
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-details">
+                    <h4 id="userName">Admin</h4>
+                    <p>Administrador</p>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Sair
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="content-section">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <p>Visão geral da pipeline LegisClara</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Total Processado</span>
+                        <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--accent-purple);">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">26</div>
+                    <div class="stat-label">Proposições hoje</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Vídeos Gerados</span>
+                        <div class="stat-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan);">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Último ciclo</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Publicações</span>
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                            <i class="fa-brands fa-instagram"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Instagram Reels</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Status Pipeline</span>
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value"><span class="status-badge stopped">Parada</span></div>
+                    <div class="stat-label">Aguardando execução</div>
+                </div>
+            </div>
+
+            <div class="pipeline-section">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-rocket"></i>
+                    Início Rápido
+                </h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Inicie a pipeline completa de coleta, processamento e publicação de conteúdo legislativo.
+                </p>
+                <div class="pipeline-controls">
+                    <button class="btn-control primary" onclick="startPipeline()">
+                        <i class="fa-solid fa-play"></i>
+                        <strong>Iniciar Pipeline Completa</strong>
+                        <span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">Coleta → Processa → Publica</span>
+                    </button>
+                    <button class="btn-control" onclick="collectOnly()">
+                        <i class="fa-solid fa-download"></i>
+                        <strong>Coletar Proposições</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Apenas dados da Câmara/Senado</span>
+                    </button>
+                    <button class="btn-control" onclick="generateVideo()">
+                        <i class="fa-solid fa-film"></i>
+                        <strong>Gerar Vídeo</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Da última proposição</span>
+                    </button>
+                    <button class="btn-control danger" onclick="stopPipeline()">
+                        <i class="fa-solid fa-stop"></i>
+                        <strong>Parar Pipeline</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Interromper execução</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Control Section -->
+        <div id="pipelineSection" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1>Controle da Pipeline</h1>
+                <p>Gerenciamento avançado do fluxo de automação</p>
+            </div>
+
+            <div class="pipeline-section">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-sliders"></i>
+                    Parâmetros de Execução
+                </h2>
+
+                <div class="config-grid">
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Limite de Vídeos</strong>
+                            <span>Quantidade máxima de vídeos por ciclo</span>
+                        </div>
+                        <input type="number" value="1" min="1" max="10" style="width: 80px; padding: 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; text-align: center;">
+                    </div>
+
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Tipos de Proposição</strong>
+                            <span>PEC, PL, PLP, MP</span>
+                        </div>
+                        <select style="padding: 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                            <option>Todos os tipos</option>
+                            <option>Apenas PECs</option>
+                            <option>PLs e PLPs</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Section -->
+        <div id="activitySection" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1>Registro de Atividades</h1>
+                <p>Histórico de execuções da pipeline</p>
+            </div>
+
+            <div class="pipeline-section">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-list"></i>
+                    Últimas Atividades
+                </h2>
+                <div class="activity-log">
+                    <div class="log-item">
+                        <div class="log-time">23/11/2024 15:49:16</div>
+                        <div class="log-message"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Vídeo publicado no Instagram com sucesso</div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-time">23/11/2024 15:41:27</div>
+                        <div class="log-message"><i class="fa-solid fa-film" style="color: var(--accent-cyan);"></i> Vídeo gerado: legislacao_1_20251123_154127_video.mp4</div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-time">23/11/2024 15:41:20</div>
+                        <div class="log-message"><i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i> PEC 38/2025 processada com sucesso</div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-time">23/11/2024 15:40:50</div>
+                        <div class="log-message"><i class="fa-solid fa-download" style="color: var(--warning);"></i> 26 proposições coletadas da Câmara</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config Section -->
+        <div id="configSection" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1>Configurações</h1>
+                <p>Ajustes do sistema e integrações</p>
+            </div>
+
+            <div class="pipeline-section">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-toggle-on"></i>
+                    Funcionalidades
+                </h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Publicação Automática Instagram</strong>
+                            <span>Postar automaticamente após gerar vídeo</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Processamento com IA</strong>
+                            <span>Usar Gemini/Claude para simplificação</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Geração de Áudio</strong>
+                            <span>Narração com gTTS</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="config-item">
+                        <div class="config-label">
+                            <strong>Logs Detalhados</strong>
+                            <span>Registro completo de todas operações</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Verificar autenticação
+        if (!sessionStorage.getItem('legisclara_auth')) {
+            window.location.href = 'index.html';
+        }
+
+        // Configurar usuário
+        const username = sessionStorage.getItem('legisclara_user') || 'admin';
+        document.getElementById('userName').textContent = username.charAt(0).toUpperCase() + username.slice(1);
+        document.getElementById('userAvatar').textContent = username.charAt(0).toUpperCase();
+
+        // Navegação
+        function showSection(section) {
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            document.getElementById(section + 'Section').style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Deseja realmente sair?')) {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Pipeline Controls
+        function startPipeline() {
+            if (confirm('Iniciar pipeline completa? Isso irá:\n\n1. Coletar proposições\n2. Processar com IA\n3. Gerar vídeos\n4. Publicar no Instagram\n\nDeseja continuar?')) {
+                alert('🚀 Pipeline iniciada!\n\nO sistema está executando em background.\nVocê pode acompanhar o progresso na seção "Atividades".');
+
+                // Aqui você faria uma chamada para o backend Python
+                // fetch('http://localhost:5000/api/start-pipeline', { method: 'POST' })
+            }
+        }
+
+        function collectOnly() {
+            alert('📥 Coletando proposições...\n\nEsta operação busca os dados mais recentes da Câmara e Senado.');
+        }
+
+        function generateVideo() {
+            alert('🎬 Gerando vídeo...\n\nCriando conteúdo audiovisual da última proposição processada.');
+        }
+
+        function stopPipeline() {
+            if (confirm('⚠️ Parar a pipeline?\n\nEsta ação irá interromper o processamento atual.')) {
+                alert('⏸️ Pipeline interrompida.');
+            }
+        }
+
+        // Animação de entrada
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    </script>
+</body>
+</html>

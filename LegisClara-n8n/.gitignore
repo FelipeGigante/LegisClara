@@ -1,0 +1,43 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# n8n data (se self-hosted)
+.n8n/
+n8n-data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.backup
+*.bak
+
+# Node modules (se usar extensões custom)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Credenciais (NUNCA commitar!)
+*credentials*.json
+*secrets*.json
+*keys*.json

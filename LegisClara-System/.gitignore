@@ -1,0 +1,44 @@
+# Environment variables
+.env
+config/config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.sqlite3
+database/*.db
+
+# Data files
+data/raw/*
+data/processed/*
+data/videos/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/videos/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/

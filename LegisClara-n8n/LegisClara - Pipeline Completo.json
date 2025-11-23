@@ -1,0 +1,517 @@
+{
+  "name": "LegisClara - Pipeline Completo",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://dadosabertos.camara.leg.br/api/v2/proposicoes",
+        "options": {}
+      },
+      "id": "45e717d6-23a2-4a8b-8e5e-fc645a8ec4f6",
+      "name": "3. Coletar Câmara",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1632,
+        272
+      ],
+      "notes": "Coleta legislações da Câmara"
+    },
+    {
+      "parameters": {
+        "jsCode": "const proposicoes = $json.dados || [];\n  const legislacoes = [];\n\n  for (const prop of proposicoes.slice(0, 1)) {\n    legislacoes.push({\n      json: {\n        fonte: 'camara',\n        tipo: prop.siglaTipo,\n        numero: prop.numero,\n        ano: prop.ano,\n        ementa: prop.ementa,\n        data_apresentacao: prop.dataApresentacao,\n        url: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${prop.id}`,\n        id_origem: prop.id,\n        autor: prop.uriAutores || 'N/A'\n      }\n    });\n  }\n\n  return legislacoes;"
+      },
+      "id": "6d762414-de17-49dc-8a45-856a6d188d67",
+      "name": "5. Normalizar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        272
+      ],
+      "notes": "Normaliza estrutura dos dados"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair JSON da resposta do Gemini\nconst items = $input.all();\nconst processados = [];\n\nfor (const item of items) {\n  try {\n    // Resposta do Gemini vem em candidates[0].content.parts[0].text\n    let responseText;\n    \n    if (item.json.candidates && item.json.candidates[0]) {\n      // Formato Gemini\n      responseText = item.json.candidates[0].content.parts[0].text;\n    } else {\n      // Fallback para outros formatos\n      responseText = item.json.response || item.json.output || item.json.text;\n    }\n    \n    console.log('Response text:', responseText);\n    \n    // Extrair JSON da resposta (procurar entre ```json e ```)\n    const jsonMatch = responseText.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n    const jsonStr = jsonMatch ? jsonMatch[1] : responseText;\n    \n    // Tentar parsear JSON\n    const analise = JSON.parse(jsonStr);\n    \n    processados.push({\n      json: {\n        ...item.json,\n        analise_ia: analise,\n        processado_em: new Date().toISOString()\n      }\n    });\n  } catch (error) {\n    console.error('Erro ao processar resposta:', error);\n    console.error('Item completo:', JSON.stringify(item.json, null, 2));\n    \n    processados.push({\n      json: {\n        ...item.json,\n        erro_processamento: error.message,\n        resposta_bruta: item.json\n      }\n    });\n  }\n}\n\nreturn processados;"
+      },
+      "id": "5c4a7497-cd75-4973-90fa-06aa74791de1",
+      "name": "7. Extrair Análise (Gemini)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        272
+      ],
+      "notes": "Extrai e valida resposta da IA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "output_format",
+              "value": "mp3_22050_32"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "sk_9eff589fdb7cec0179dec3f29754b068828bb39ceaf8fa85"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.content.parts[0].text }}"
+            },
+            {
+              "name": "model_id",
+              "value": "eleven_multilingual_v2"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 2
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "49f819dc-3dc8-4e5a-8f52-d1da9a6cf1fc",
+      "name": "8. Gerar Áudio (ElevenLabs)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2640,
+        272
+      ],
+      "notes": "Gera narração em português (voz natural)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.d-id.com/talks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic bGlwZS5naWdhbnRlMjAwNEBnbWFpbC5jb20:JPOf-FtlN5cftwV57XNRh"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source_url",
+              "value": "https://create-images-results.d-id.com/google-oauth2%7C103908445571603294059/upl_JRxp-Y0tgdoEuHqvlmxnv/image.png"
+            },
+            {
+              "name": "script",
+              "value": "={{ { \"type\": \"audio\", \"audio_url\": $json.audio_url } }}"
+            },
+            {
+              "name": "config",
+              "value": "={{ { \"fluent\": true, \"pad_audio\": 0, \"driver_expressions\": { \"expressions\": [{ \"start_frame\": 0, \"expression\": \"neutral\", \"intensity\": 1.0 }] }, \"result_format\": \"mp4\" } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b9a498d3-54c3-40d1-995f-9d3a705cd09c",
+      "name": "9. Gerar Vídeo (D-ID)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2832,
+        272
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zAQH6LarntaxFnhz",
+          "name": "Header Auth account"
+        }
+      },
+      "notes": "Cria vídeo com avatar animado (GRÁTIS com créditos)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aguardar processamento do vídeo D-ID\nconst videoId = $json.id;\nconst apiKey = $env.DID_API_KEY;\n\nasync function checkVideoStatus(id, key) {\n  const maxAttempts = 30;\n  const delayMs = 10000; // 10 segundos\n  \n  for (let i = 0; i < maxAttempts; i++) {\n    const response = await fetch(`https://api.d-id.com/talks/${id}`, {\n      headers: {\n        'Authorization': `Basic ${key}`\n      }\n    });\n    \n    const data = await response.json();\n    \n    if (data.status === 'done') {\n      return { json: { ...data, video_pronto: true } };\n    } else if (data.status === 'error') {\n      throw new Error(`Erro no D-ID: ${data.error}`);\n    }\n    \n    // Aguardar antes da próxima tentativa\n    await new Promise(resolve => setTimeout(resolve, delayMs));\n  }\n  \n  throw new Error('Timeout aguardando vídeo');\n}\n\nreturn await checkVideoStatus(videoId, apiKey);"
+      },
+      "id": "8f7d6de6-ec94-45e9-847e-632894a0fa58",
+      "name": "10. Aguardar Processamento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        272
+      ],
+      "notes": "Aguarda D-ID processar vídeo (pode levar 2-5min)"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.result_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "a6f8dc05-fcc4-4f6e-8134-00166e159ac8",
+      "name": "11. Baixar Vídeo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        3232,
+        272
+      ],
+      "notes": "Baixa vídeo final do D-ID"
+    },
+    {
+      "parameters": {
+        "operation": "upload"
+      },
+      "id": "52ef27ec-ff0f-43db-842d-63de3d60e248",
+      "name": "12. Upload Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3440,
+        272
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YPLHvwbEujZQDJFV",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Armazena vídeo no Supabase Storage (GRÁTIS)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gerar caption otimizada para Instagram\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const analise = item.json.analise_ia;\n  const leg = item.json;\n  \n  const caption = `🏛️ ${leg.tipo} ${leg.numero}/${leg.ano}\n\n${analise.resumo_simples}\n\n👥 Quem é impactado:\n${analise.grupos_impactados.map((g, i) => `${i+1}. ${g}`).join('\\n')}\n\n💬 ${analise.pergunta_engajadora}\n\n#LegisClara #Política #Cidadania #${leg.tipo}${leg.numero} #Brasil #Democracia #EducaçãoPolítica`;\n\n  result.push({\n    json: {\n      ...item.json,\n      caption_instagram: caption,\n      hashtags: ['LegisClara', 'Política', 'Cidadania', 'Brasil', 'Democracia']\n    }\n  });\n}\n\nreturn result;"
+      },
+      "id": "e1826823-c871-4b44-b25b-c1203342a5cc",
+      "name": "13. Gerar Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3632,
+        272
+      ],
+      "notes": "Cria legendas otimizadas com hashtags"
+    },
+    {
+      "parameters": {
+        "tableId": "publicacoes"
+      },
+      "id": "98d1564d-f5cd-471e-9a51-18fffec87fb8",
+      "name": "15. Salvar no Banco",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4032,
+        160
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YPLHvwbEujZQDJFV",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Registra publicação no banco de dados"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_USER }}",
+        "toEmail": "{{ $env.EMAIL_PARLAMENTARES }}",
+        "subject": "📊 LegisClara - Nova Legislação Publicada",
+        "html": "=<html>\n<body style=\"font-family: Arial, sans-serif;\">\n  <h2>🏛️ Nova Legislação Analisada</h2>\n  \n  <p><strong>Tipo:</strong> {{ $json.tipo }} {{ $json.numero }}/{{ $json.ano }}</p>\n  \n  <p><strong>Resumo:</strong><br>\n  {{ $json.analise_ia.resumo_simples }}</p>\n  \n  <p><strong>Grupos Impactados:</strong></p>\n  <ul>\n    {{ $json.analise_ia.grupos_impactados.map(g => '<li>' + g + '</li>').join('') }}\n  </ul>\n  \n  <p><strong>Pontos de Atenção:</strong></p>\n  <ul>\n    {{ $json.analise_ia.pontos_polemicos.map(p => '<li>' + p + '</li>').join('') }}\n  </ul>\n  \n  <p><strong>Vídeo publicado:</strong><br>\n  <a href=\"{{ $json.permalink }}\">Ver no Instagram</a></p>\n  \n  <hr>\n  <p><small>Este é um resumo automático gerado pelo projeto LegisClara para democratizar o acesso à informação legislativa.</small></p>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "06a5c126-5890-4e96-9b8f-04aaa3450738",
+      "name": "16. Notificar Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        4032,
+        368
+      ],
+      "webhookId": "8f7c5366-7ecb-4fb2-82e8-a82155206925",
+      "notes": "Notifica parlamentares/cidadãos (opcional)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "821657dc-ad54-4408-910d-7571a1b75ec2",
+      "name": "17. Notificação Final",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [
+        4240,
+        272
+      ],
+      "notes": "Notifica conclusão via Discord/Slack (opcional)"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841478860070952",
+        "edge": "media",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        3872,
+        208
+      ],
+      "id": "71d0a323-f15e-469f-816d-6811f0a95274",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "rDgxT5MIv9VpM3DX",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        272
+      ],
+      "id": "97fbf080-7546-421e-9ca1-38b408fd01e3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Você é um especialista em traduzir legislação brasileira para linguagem simples.\\n\\nAnalise esta legislação:\\n\\nTipo: {{ $json.tipo }} \\nNúmero: {{ $json.numero }}\\n Ementa: {{ $json.ementa }} traga tambem pergunta_engajadora e pergunta final pedindo para deixar a opiniao nos comentarios do video. Deixe o texto o mais resumido possivel, pois será animado por voz posteriormente, e em aúdio precisa dar no maximo 30 segundos, equivalente a 60 palavras no maximo. Ao fim traga APENAS O TEXTO RESUMIDO BRUTO, SEM MAIS NADA JUNTO\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        272
+      ],
+      "id": "6459027e-416f-4224-aa45-b6c4d9094496",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ol1RNiE0JBdTBBWj",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "7. Extrair Análise (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "8. Gerar Áudio (ElevenLabs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8. Gerar Áudio (ElevenLabs)": {
+      "main": [
+        [
+          {
+            "node": "9. Gerar Vídeo (D-ID)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9. Gerar Vídeo (D-ID)": {
+      "main": [
+        [
+          {
+            "node": "10. Aguardar Processamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10. Aguardar Processamento": {
+      "main": [
+        [
+          {
+            "node": "11. Baixar Vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11. Baixar Vídeo": {
+      "main": [
+        [
+          {
+            "node": "12. Upload Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12. Upload Supabase": {
+      "main": [
+        [
+          {
+            "node": "13. Gerar Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15. Salvar no Banco": {
+      "main": [
+        [
+          {
+            "node": "17. Notificação Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16. Notificar Email": {
+      "main": [
+        [
+          {
+            "node": "17. Notificação Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "13. Gerar Caption": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "3. Coletar Câmara",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Coletar Câmara": {
+      "main": [
+        [
+          {
+            "node": "5. Normalizar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Normalizar Dados": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "7. Extrair Análise (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "61f7e4f7-ffa5-4f55-96ea-db7c743a3d77",
+  "meta": {
+    "instanceId": "eeb83a46ad61ad493203ff7e3deedaa814d5c6930dd54942cbc8bc07b81977f9"
+  },
+  "id": "SgErTuS3TcPRSaop",
+  "tags": [
+    {
+      "name": "legislativo",
+      "id": "lXe9Hu7TdvFlsYot",
+      "createdAt": "2025-11-23T01:52:43.114Z",
+      "updatedAt": "2025-11-23T01:52:43.114Z"
+    },
+    {
+      "name": "automação",
+      "id": "uqFIfxU0VKDMB24x",
+      "createdAt": "2025-11-23T01:52:43.138Z",
+      "updatedAt": "2025-11-23T01:52:43.138Z"
+    }
+  ]
+}

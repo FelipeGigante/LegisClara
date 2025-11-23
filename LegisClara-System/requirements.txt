@@ -1,0 +1,28 @@
+# LegisClara - Sistema Completo
+# Python 3.10+
+
+# Core
+python-dotenv==1.0.0
+
+# APIs REST
+requests==2.31.0
+
+# Google Gemini API (Gratuito - 1500 req/dia)
+google-generativeai>=0.3.0
+
+# Text-to-Speech Gratuito (Google)
+gTTS==2.4.0
+
+# Processamento de Vídeo
+ffmpeg-python==0.2.0
+
+# Utilitários
+python-dateutil==2.8.2
+colorlog==6.8.0
+
+# Wav2Lip (Opcional - Requer instalação separada)
+# Ver: https://github.com/Rudrabha/Wav2Lip
+# Requer: torch, torchvision, opencv-python, librosa, scipy, tqdm, numba
+
+# Testing (opcional)
+pytest==7.4.3
