@@ -56,14 +56,23 @@ class LegisClara:
 
         # Configurações
         self.camara_config = {'base_url': 'https://dadosabertos.camara.leg.br/api/v2', 'timeout': 30}
+        
+        # Configuração de voz TTS melhorada
+        # Opções: 'pyttsx3' (RECOMENDADO), 'elevenlabs', 'silero', 'gtts'
+        tts_config = {
+            'tts_engine': 'pyttsx3',  # Usar vozes nativas (muito melhor que gTTS)
+            'speed': 1.0,              # Velocidade da fala (0.5-2.0)
+            'voice': 0                 # Número da voz (varie de 0-2 dependendo do SO)
+        }
+        
         self.video_config = {
-            'tts': {'lang': 'pt-br', 'slow': False},
+            'tts': tts_config,
             'video': {
                 'resolution': '1080x1920',
                 'fps': 25,
                 'avatar_image': 'assets/avatar.jpeg',
                 'wav2lip_path': 'Wav2Lip',
-                'checkpoint_path': 'Wav2Lip/checkpoints/wav2lip_gan.pth'
+                'checkpoint_path': 'Wav2Lip/checkpoints/Wav2Lip-SD-NOGAN.pt'
             }
         }
 
